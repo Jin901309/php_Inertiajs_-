@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Notifications;
+
+use Carbon\Carbon;
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+
+class FriendRequestReceived extends Notification
+{
+    use Queueable;
+
+    public $user;
+
+    /**
+     * Create a new notification instance.
+     *
+     * @return void
+     */
+    public function __construct($user)
+    {
+        $this->user=$user;
+    }
+
+    /**
+     * Get the notification's delivery channels.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function via($notifiable)
+    {
+        return ['mail','database'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return \Illuminate\Notifications\Messages\MailMessage
+     */
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)->markdown('mail.friendreq', [
+            'user'=>$this->user,
+
+        ]);
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toArray($notifiable)
+    {
+        return [
+            'info' => [
+                'message' => "친구 요청을 받았습니다.(".$this->user->username.")",
+                'link' => route('profiles.show', $this->user->username),
+                'avatar' => $this->user->profile_photo_url,
+                'sent' => Carbon::now()
+            ]
+        ];
+    }
+}
